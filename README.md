@@ -1,2 +1,4 @@
-# WiFi-HAR (CNN+GRU)
-The goal of this project is to explore the intersection of computer vision and RF sensing by exploiting properties of the wireless channel to gather information about human activity. Specifically, we aim to use WiFi Channel State Information (CSI) with vision-orineted deep learning techniques to perform Human Activity Recognition (HAR). 
+# WiFi-Human Activity Recognition (CNN+GRU)
+Developed CNN+GRU deep learning models for Wi-Fi-based Human Activity Recognition (HAR) and gait identification using Channel State Information (CSI). Evaluated performance on UT-HAR and NTU-Fi datasets, analyzing classification accuracy, training dynamics, and confusion matrices.
+
+[View Full Project Report](https://mackwerner.github.io/WiFi-Human_Activity_Recognition/)
