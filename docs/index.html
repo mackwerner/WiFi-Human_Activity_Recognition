@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>
+      Computer Vision Course Project | ECE, Virginia Tech | Fall 2021: ECE 4554/5554
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+      .vis {
+        color: #3366CC;
+      }
+      .data {
+        color: #FF9900;
+      }
+    </style>
+
+    <!-- Table style 1 -->
+    <style>
+      .no-horizontal {
+        border-collapse: collapse;
+        margin: auto;
+      }
+      .no-horizontal td,
+      .no-horizontal th {
+        border-left: 1px solid #000;
+      }
+      .no-horizontal td:last-child,
+      .no-horizontal th:last-child {
+        border-right: 1px solid #000;
+      }
+      /* top line + line under header */
+      .no-horizontal tr:first-child td {
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+      }
+      /* bottom line */
+      .no-horizontal tr:last-child td {
+        border-bottom: 1px solid #000;
+      }
+    </style>
+
+    <!-- Table style 2 -->
+    <style>
+      .table2 {
+        border-collapse: collapse;
+        margin: auto;
+      }
+      .table2 td,
+      .table2 th {
+        border-left: 1px solid #000;
+      }
+      .table2 td:last-child,
+      .table2 th:last-child {
+        border-right: 1px solid #000;
+      }
+      /* top line + line under header */
+      .table2 tr:first-child td {
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+      }
+      /* bottom line */
+      .table2 tr:last-child td {
+        border-bottom: 1px solid #000;
+      }
+      /* horizontal line below sub-header row */
+      .table2 tr:nth-child(2) td {
+        border-bottom: 1px solid #000;
+      }
+    </style>
+
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="page-header">
+
+        <!-- Title and Name -->
+        <h1>Wi-Fi CSI Learning: Human Activity Recognition and Gait Identification Using CNN+GRU</h1>
+        <span style="font-size: 20px; line-height: 1.5em;">
+          <strong>Mack Werner, Ryan Frost, and Jacqueline Newland</strong>
+        </span>
+        <br>
+        <span style="font-size: 18px; line-height: 1.5em;">
+          Fall 2025 ECE 4554/5554 Computer Vision: Course Project
+        </span>
+        <br>
+        <span style="font-size: 18px; line-height: 1.5em;">Virginia Tech</span>
+        <hr>
+
+        <!-- Abstract -->
+        <h3>Abstract</h3>
+
+        Wi-Fi Channel State Information (CSI) enables contact-free sensing of human motion for applications in
+        healthcare, security, and smart homes. While recent work demonstrates promising results for
+        deep-learning-based human activity recognition (HAR), the generalization of these approaches across
+        different tasks remains unclear. In this project, we re-implemented the CNN+GRU architecture proposed by
+        Wakili et al. and validated its performance on the UT-HAR and NTU-Fi HAR datasets, obtaining accuracy
+        comparable to the original study [1]. We then extended the approach to a new problem of biometric gait
+        identification using the NTU-Fi Human-ID dataset, which classifies people based on their walking patterns
+        from CSI. Our results show that CNN+GRU models trained on CSI data can generalize beyond activity
+        classification and achieve competitive performance on gait recognition as well. These findings highlight
+        the broader potential of CSI-based sensing for both behavior and identity classification in deep learning.
+        <br><br>
+
+        <!-- figure -->
+        <h3>Core Concept Visual</h3>
+        <div style="text-align: center;">
+          <img style="height: 500px;" alt="" src="Fig_1_Final_Report_Graphic.jpg">
+          <div>
+            Figure 1. CSI-based human activity recognition pipeline.
+          </div>
+        </div>
+        <br><br>
+
+        <!-- Introduction -->
+        <h3>Introduction</h3>
+        Human motion sensing enables applications in elderly care, rehabilitation monitoring, access control, smart
+        environments, and human-computer interaction. Traditional human activity recognition (HAR) solutions rely
+        on wearable sensors or vision-based systems, both of which introduce limitations. Wearable devices require
+        user input and cameras raise privacy constraints.
+        <br><br>
+        Wi-Fi-based sensing addresses these challenges by using channel state information (CSI) to infer physical
+        movement from ambient wireless signals, without requiring wearable devices or camera-based observation. Wi-Fi
+	devices are widespread and easily accessible, making a CSI approach more favorable than traditional devices.
+        <br><br>
+        Recent work by Wakili et al. proposed a lightweight CNN+GRU architecture for CSI-based HAR, achieving
+        strong performance on multiple datasets. However, reproducibility and task generalization have yet to be
+        studied.
+        <br><br>
+        To investigate this, we:
+        <ol>
+          <li>Reproduced the CNN+GRU HAR pipeline proposed by Wakili et al.</li>
+          <li>Validated performance on UT-HAR and NTU-Fi HAR datasets</li>
+          <li>Applied the same model to gait-based user identification on the NTU-Fi Human-ID dataset</li>
+        </ol>
+        Our contribution provides evidence that Wi-Fi-based HAR can support behavioral and biometric inference tasks.
+        <br><br>
+
+        <!-- Approach -->
+        <h3>Approach</h3>
+        <div style="text-align: center;">
+          <img style="height: 500px;" alt="" src="Fig_2_Model_Diagram.png">
+          <div>
+            Figure 2. CNN+GRU model described by Wakili et al. [1].
+          </div>
+        </div>
+        <br>
+        We reproduced the CNN+GRU pipeline as described by Wakili et al. The model consists of CNN layers
+        that extract spatial features from CSI, max pooling to reduce dimensionality, a bidirectional GRU that captures temporal
+        dependences in both directions, followed by fully connected layers, and softmax to predict activity classes. We implemented the
+        model ourselves in PyTorch with standard training loops, cross-entropy loss, drop out layers with a rate of 0.5, 
+	and the Adam optimizer with a 0.001 learning rate. While Wakili et al. did not mention how many epochs they 
+	trained on, we chose 100 based on another paper that gives a range of 30-200 epochs for these datasets [2]. 
+	We additionally chose a batch size of 64 to provide a balance between computational efficiency and training 
+	stability on our CPU hardware.
+        <br><br>
+        An immediate constraint was our lack of access to the raw, non-processed, UT-HAR CSI data originally used in
+        the Wakili et al. paper. We therefore expanded the study to focus on reproducing results with the processed data
+        and gait identification.
+        <br><br>
+        Initial tests on the NTU-Fi dataset showed a deterioration of training performance past 50 epochs. To overcome
+        this, we reduced the NTU-Fi training from 100 to 30 epochs to mitigate overfitting and stabilize validation
+        behavior. However, this change did little to improve results at 79.92% accuracy and unstable validation. Each CSI
+	sample in the NTU-Fi dataset is a multivariate time series with shape (N,T,F), where N is the number of samples,
+	T is the number of timesteps per sample, and F is the number of features at each timestep. The NTU-Fi data consists
+	of 936 samples, each with T = 2,000 timesteps and 342 features, resulting in roughly 684,000 values per sample.
+	Training a GRU on sequences of this length created long memory chains with gradients that needed to propagate
+	through 2,000 recurrent steps, which led to slow training, vanishing/exploding gradients, and unstable validation
+	accuracy [3]. To mitigate these effects, we downsampled the time dimension from 2,000 to 500 steps, taking every
+	fourth timestep. This reduced the sequence length, improved gradient flow, accelerated convergence, and resulted
+	in more stable training dynamics. This downsampling was also used in the NTU-Fi Human-ID training.
+        <br><br>
+
+        <!-- Experiments-->
+        <h3>Experiments</h3>
+        <div style="text-align: center;">
+          <img style="height: 300px;" alt="" src="Fig_3_UT-HAR_Sample.png">
+          <div>
+            Figure 3. UT-HAR dataset CSI samples of a walk, run, and stand up.
+          </div>
+        </div>
+        <br><br>
+        <div style="text-align: center;">
+          <img style="height: 300px;" alt="" src="Fig_4_NTU-Fi_HAR_Sample.png">
+          <div>
+            Figure 4. NTU-Fi HAR dataset CSI samples of someone drawing a box, circle, and running.
+          </div>
+        </div>
+        <br><br>
+        <div style="text-align: center;">
+          <img style="height: 300px;" alt="" src="Fig_5_NTU-Fi_Human-ID_Sample.png">
+          <div>
+            Figure 5. NTU-Fi Human-ID CSI samples of human walking Subjects 11, 8, and 5.
+          </div>
+        </div>
+        <br><br>
+
+        <div style="text-align:center;">
+          <table class="no-horizontal" cellspacing="0" cellpadding="4">
+            <tr>
+              <td>Datasets</td>
+              <td>UT-HAR</td>
+              <td>NTU-Fi HAR</td>
+              <td>NTU-Fi Human-ID</td>
+            </tr>
+            <tr>
+              <td>Platform</td>
+              <td>Intel 5300 NIC</td>
+              <td>Atheros CSI Tool</td>
+              <td>Atheros CSI Tool</td>
+            </tr>
+            <tr>
+              <td>Category amount</td>
+              <td>7</td>
+              <td>6</td>
+              <td>14</td>
+            </tr>
+            <tr>
+              <td>Category names</td>
+              <td>lie down, fall, walk,<br>pick up, run, sit down, stand up</td>
+              <td>box, circle, clean,<br>fall, run, walk</td>
+              <td><em>gaits of 14 subjects</em></td>
+            </tr>
+            <tr>
+              <td>Data Size</td>
+              <td>(330,250) (antenna, subcarrier, packet)</td>
+              <td>(3,114,500) (antenna, subcarrier, packet)</td>
+              <td>(3,114,500) (antenna, subcarrier, packet)</td>
+            </tr>
+            <tr>
+              <td>Training samples</td>
+              <td>3,977</td>
+              <td>936</td>
+              <td>546</td>
+            </tr>
+            <tr>
+              <td>Testing samples</td>
+              <td>996</td>
+              <td>264</td>
+              <td>294</td>
+            </tr>
+          </table>
+
+          <div>
+            Table 1. Information for datasets UT-HAR, NTU-Fi HAR, and NTU-Fi Human-ID.
+          </div>
+        </div>
+
+        <br>
+        We tested our model on three CSI datasets representing different Wi-Fi sensing platforms and tasks. UT-HAR
+        contains seven common activities captured using an Intel 5300 NIC, while NTU-Fi HAR includes six gesture-like
+        activities captured using the Atheros CSI Tool. NTU-Fi Human-ID extends the benchmark to biometric
+        classification, containing gait data from 14 subjects. These datasets allow us to test whether a single
+        CNN+GRU architecture can generalize across both activity and identity recognition tasks.
+        <br><br>
+        To evaluate model performance across all three datasets, we used standard classification metrics including
+        accuracy, confusion matrices, and F1-score to assess both overall effectiveness and class-level behavior. For
+        context, a random classification on the UT-HAR dataset would achieve only about 14.3% accuracy, so any
+        performance substantially above this baseline reflects meaningful learning rather than chance.
+        <br><br>
+
+        <!-- Results -->
+
+
+           <h3>Results on UT-HAR</h3>
+
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_6_UT-HAR_Accuracy.png">
+            <div>
+              Figure 6. Training vs. validation accuracy on the UT-HAR dataset.
+            </div>
+          </div>
+          <br>
+          On the UT-HAR dataset, training accuracy rose quickly and stabilized above 95%, while validation accuracy
+          fluctuated heavily before settling in the high-90% range later in training. These oscillations reflect the
+          difficulty of generalizing across brief or variable activities, but the eventual convergence toward training
+          accuracy indicates that the model learned to generalize reasonably well despite unstable training dynamics.
+          <br><br>
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_7_UT-HAR_Loss.png">
+            <div>
+              Figure 7. Training vs. validation loss on the UT-HAR dataset.
+            </div>
+          </div>
+          <br>
+          Training loss decreased smoothly toward zero, whereas validation loss fluctuated substantially, reflecting
+          instability and sensitivity to class imbalance and temporal variability in UT-HAR. Despite noisy behavior, the
+          overall downward trend indicates successful but unstable convergence.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="no-horizontal" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Model</td>
+                <td>Accuracy</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Our Model</td>
+                <td>93.95</td>
+                <td>93.73</td>
+                <td>90.34</td>
+                <td>91.25</td>
+              </tr>
+              <tr>
+                <td>Wakili et al.</td>
+                <td>95.20</td>
+                <td>94.32</td>
+                <td>93.70</td>
+                <td>93.72</td>
+              </tr>
+            </table>
+
+            <div>
+              Table 2. Overall classification performance on the UT-HAR dataset.
+            </div>
+          </div>
+          <br>
+          Our model achieved an overall accuracy of 93.95%, with a precision of 93.73%, recall of 90.34%, and an
+          F1-score of 91.25% on the UT-HAR dataset. These results are slightly below those reported by Wakili et al.,
+          who obtained 95.20% accuracy and an F1-score of 93.72%, but still demonstrate strong performance given
+          differences in dataset splits, preprocessing, and implementation details.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="table2" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Class</td>
+                <td colspan="3">Our Model</td>
+                <td colspan="3">Wakili et al.</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Clean</td>
+                <td>100</td><td>68</td><td>81</td>
+                <td>98</td><td>100</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Fall</td>
+                <td>100</td><td>100</td><td>95</td>
+                <td>100</td><td>100</td><td>100</td>
+              </tr>
+              <tr>
+                <td>Run</td>
+                <td>90</td><td>100</td><td>95</td>
+                <td>100</td><td>98</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Walk</td>
+                <td>99</td><td>96</td><td>98</td>
+                <td>100</td><td>98</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Box</td>
+                <td></td><td></td><td></td>
+                <td>98</td><td>100</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Circle</td>
+                <td></td><td></td><td></td>
+                <td>100</td><td>100</td><td>100</td>
+              </tr>
+              <tr>
+                <td>Lie Down</td>
+                <td>99</td><td>100</td><td>99</td>
+                <td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>Pick Up</td>
+                <td>86</td><td>100</td><td>92</td>
+                <td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>Sit Down</td>
+                <td>86</td><td>96</td><td>90</td>
+                <td></td><td></td><td></td>
+              </tr>
+              <tr>
+                <td>Stand Up</td>
+                <td>96</td><td>73</td><td>83</td>
+                <td></td><td></td><td></td>
+              </tr>
+            </table>
+
+            <div>
+              Table 3. Class wise classification performance on the UT-HAR dataset. Note that the classes for UT-HAR
+              are incorrect in the Wakili et al. paper.
+            </div>
+          </div>
+          <br>
+          At the class level, our model performed very well on most activities, especially lie down (F1=99%), walk
+          (98%), and run (95%). However, activities such as fall (81%) and stand up (83%) showed lower recall,
+          indicating difficulty recognizing rarer or less dynamic motions. This aligns with the broader challenge of
+          detecting brief or subtle transitions in time-series data.
+          <br><br>
+          Our results on the UT-HAR dataset suggest that while our reproduction closely resembles Wakili et al.’s
+          performance, activity recognition is sensitive to class imbalance, motion subtlety, and temporal segmentation.
+          <br><br>
+
+
+          <h3>Results on NTU-Fi HAR</h3>
+
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_8_NTU-Fi_Accuracy.png">
+            <div>
+              Figure 8. Training vs. validation loss on the NTU-Fi HAR dataset.
+            </div>
+          </div>
+          <br>
+          On the NTU-Fi HAR dataset, training accuracy quickly reached near-perfect performance and remains stable
+          throughout training, while validation accuracy shows extreme fluctuations spanning from very low values to
+          above 95%. These sharp oscillations suggest sensitivity to class imbalance and noisy sequence representation
+          in the validation split, though the final epochs indicate that the model is still capable of achieving high
+          accuracy despite unstable convergence.
+          <br><br>
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_9_NTU-Fi_Loss.png">
+            <div>
+              Figure 9. Training vs. validation accuracy on the NTU-Fi HAR dataset.
+            </div>
+          </div>
+          <br>
+          Training loss decreased rapidly and remained close to zero throughout most of training, while validation loss
+          exhibited substantial spikes reaching values above 5. These extreme fluctuations indicate unstable
+          generalization and sensitivity to noisy or inconsistent samples in the validation split. Despite the
+          volatility, the overall downward trend suggests that the model does learn meaningful representations, even
+          though convergence remains noisy and difficult to control.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="no-horizontal" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Model</td>
+                <td>Accuracy</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Our Model</td>
+                <td>97.73</td>
+                <td>97.93</td>
+                <td>97.73</td>
+                <td>97.72</td>
+              </tr>
+              <tr>
+                <td>Wakili et al.</td>
+                <td>99.24</td>
+                <td>99.24</td>
+                <td>99.24</td>
+                <td>99.24</td>
+              </tr>
+            </table>
+
+            <div>
+              Table 4. Overall classification performance on the NTU-Fi HAR dataset.
+            </div>
+          </div>
+          <br>
+          On NTU-Fi HAR, our model achieved an accuracy of 97.73%, with precision of 97.93%, recall of 97.73%, and an
+          F1-score of 97.72%, closely matching the performance by Wakili et al. of 99.24% across all metrics. We
+          maintained highly competitive performance and showed reliable model generalization across environments and
+          subjects.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="table2" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Class</td>
+                <td colspan="3">Our Model</td>
+                <td colspan="3">Wakili et al.</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Clean</td>
+                <td>90</td><td>100</td><td>95</td>
+                <td>98</td><td>100</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Fall</td>
+                <td>100</td><td>89</td><td>94</td>
+                <td>100</td><td>100</td><td>100</td>
+              </tr>
+              <tr>
+                <td>Run</td>
+                <td>98</td><td>100</td><td>99</td>
+                <td>100</td><td>98</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Walk</td>
+                <td>100</td><td>98</td><td>99</td>
+                <td>100</td><td>98</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Box</td>
+                <td>100</td><td>100</td><td>100</td>
+                <td>98</td><td>100</td><td>99</td>
+              </tr>
+              <tr>
+                <td>Circle</td>
+                <td>100</td><td>100</td><td>100</td>
+                <td>100</td><td>100</td><td>100</td>
+              </tr>
+            </table>
+
+            <div>
+              Table 5. Class wise classification performance on the NTU-Fi HAR dataset.
+            </div>
+          </div>
+          <br>
+          Class level-performance was uniformly high with box, circle, and walk achieving perfect or near-perfect
+          F1-scores (99-100%), while clean (95%) and fall (94%) showed slightly lower scores due to decreased recall.
+          Overall, the results show that the CNN+GRU architecture performs exceptionally well on activities with clear,
+          repetitive motion signatures.
+          <br><br>
+          Importantly, both our results and Wakili et al.’s indicate that NTU-Fi HAR is a relatively reliable dataset,
+          enabling high performance even without extensive architectural tuning.
+          <br><br>
+
+
+
+           <h3>Results on NTU-Fi Human-ID</h3>
+
+
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_10_Human-ID_Accuracy.png">
+            <div>
+              Figure 10. Training vs. validation loss on the NTU-Fi Human-ID dataset.
+            </div>
+          </div>
+          <br>
+          On the NTU-Fi Human-ID dataset, training accuracy increased rapidly and reached near-perfect performance
+          early in training, while validation accuracy fluctuated heavily in the first half of training before
+          stabilizing above 95% in later epochs. These fluctuations suggest early sensitivity to subject-level
+          variability in gait patterns, but the eventual convergence to high accuracy indicates that the model learns
+          consistent identity-specific features despite noisy learning dynamics.
+          <br><br>
+          <div style="text-align: center;">
+            <img style="height: 300px;" alt="" src="Fig_11_Human-ID_Loss.png">
+            <div>
+              Figure 11. Training vs. validation accuracy on the NTU-Fi Human-ID dataset.
+            </div>
+          </div>
+          <br>
+          Training loss declined rapidly and remained very low throughout most of training, whereas validation loss
+          exhibited substantial spikes early on before gradually decreasing and stabilizing. These fluctuations reflect
+          the difficulty of learning consistent identity-specific patterns from limited gait samples, but the eventual
+          reduction in validation loss suggests that the model can learn robust features despite noisy and unstable
+          convergence.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="no-horizontal" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Model</td>
+                <td>Accuracy</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Our Model</td>
+                <td>98.98</td>
+                <td>98.99</td>
+                <td>98.98</td>
+                <td>98.98</td>
+              </tr>
+            </table>
+
+            <div>
+              Table 6. Overall classification performance on the NTU-Fi Human-ID dataset.
+            </div>
+          </div>
+          <br>
+          For the gait identification task on NTU-Fi Human-ID, our model achieved overall accuracy of 98.89%, with
+          precision, recall, and F1-scores about the same. These results demonstrate that CSI-based biometric
+          identification is feasible using the same CNN+GRU architecture designed for activity classification.
+          <br><br>
+
+          <div style="text-align:center;">
+            <table class="no-horizontal" cellspacing="0" cellpadding="4">
+              <tr>
+                <td>Model</td>
+                <td>Precision</td>
+                <td>Recall</td>
+                <td>F1-Score</td>
+              </tr>
+              <tr>
+                <td>Subject 1</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 2</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 3</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 4</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 5</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 6</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 7</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 8</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 9</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 10</td>
+                <td>95</td>
+                <td>90</td>
+                <td>93</td>
+              </tr>
+              <tr>
+                <td>Subject 11</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 12</td>
+                <td>91</td>
+                <td>95</td>
+                <td>93</td>
+              </tr>
+              <tr>
+                <td>Subject 13</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>Subject 14</td>
+                <td>100</td>
+                <td>100</td>
+                <td>100</td>
+              </tr>
+            </table>
+
+            <div>
+              Table 7. Class wise classification performance on the NTU-Fi Human-ID dataset.
+            </div>
+          </div>
+          <br>
+          Class-level performance was nearly perfect for all subjects. Most individuals achieved F1-scores of
+          100%. The only noticeable confusion of Subject 10 and Subject 12 suggest increased ambiguity in their
+	  gait characteristics. This aligns with prior findings that biometric classification faces more
+	  intra-class similarity than activity recognition.
+          <br><br>
+          The results collectively show that CSI signals encode sufficient motion-specific information to identify
+          individuals based purely on their gait, without wearable devices or cameras. Achieving near-99% accuracy with
+          a lightweight model highlights a promising direction for privacy-preserving security and authentication
+          systems.
+          <br><br>
+
+
+        <h3>Quantitative Comparison</h3>
+
+
+        <div style="text-align:center;">
+          <table class="no-horizontal" cellspacing="0" cellpadding="4">
+            <tr>
+              <td>Dataset</td>
+              <td>Our Accuracy</td>
+              <td>Wakili et al.’s Accuracy</td>
+            </tr>
+            <tr>
+              <td>UT-HAR</td>
+              <td>93.95</td>
+              <td>95.20</td>
+            </tr>
+            <tr>
+              <td>NTU-Fi HAR</td>
+              <td>97.73</td>
+              <td>99.24</td>
+            </tr>
+            <tr>
+              <td>NTU-Fi Human-ID</td>
+              <td>98.98</td>
+              <td></td>
+            </tr>
+          </table>
+
+          <div>
+            Table 8. Comparative accuracy analysis across datasets.
+          </div>
+        </div>
+        <br>
+
+        Across all three datasets, several consistent patterns emerged. Dynamic activities such as running and walking
+        were recognized with very high F1-scores, while brief or transitional motions like falling or standing up
+        tended to produce lower recall, likely due to their shorter temporal duration and reduced motion
+        distinctiveness. In contrast, gait-based identity classification produced exceptionally stable results, with
+        perfect performance for nearly all subjects and only minor confusion among two individuals. Importantly,
+        performance remained high even after downsampling the temporal dimension, suggesting that CSI sequences contain
+        substantial redundancy and that informative motion signatures can be captured without preserving every timestep.
+        <br><br>
+        Overall, our findings show that we were able to closely reproduce the results of Wakili et al. while extending
+        the approach to a new task that demonstrates broader applicability. The same CNN+GRU architecture generalized
+        well to both activity recognition and gait identification, revealing that CSI encodes both behavioral and
+        biometric information. These results indicate that Wi-Fi-based sensing is a promising path toward robust,
+        privacy-preserving inference systems that can support multiple applications using lightweight models and minimal
+        domain-specific tuning.
+        <br><br>
+
+        <!-- Qualitative Results-->
+        <h3>Qualitative Results</h3>
+
+        <div style="text-align: center;">
+          <img style="height: 397px;" alt="" src="Fig_12_UT-HAR_Confusion_Matrix.png">
+          <div>
+            Figure 12. UT-HAR confusion matrix.
+          </div>
+        </div>
+        <br>
+        The results for UT-HAR show that the model correctly identifies most activities with high accuracy,
+        particularly lie down, pick up, run, and walk, which all achieve near-perfect classification. Misclassifications
+        are concentrated in fall, where the model frequently confuses it with sit down, stand up, and walk, and in
+        stand up, which is occasionally predicted as sit down. These errors reflect the challenge of distinguishing
+        short, transitional movements with similar temporal signatures, whereas more dynamic and sustained activities
+        are recognized with high confidence. Overall, the qualitative results indicate strong performance on clearly
+        defined motions and moderate confusion among brief, overlapping activities.
+        <br><br>
+
+        <div style="text-align: center;">
+          <img style="height: 397px;" alt="" src="Fig_13_NTU-Fi_Confusion_Matrix.png">
+          <div>
+            Figure 13. NTU-Fi confusion matrix.
+          </div>
+        </div>
+        <br>
+        The results for NTU-Fi HAR demonstrate that most activities are classified with extremely high accuracy, with
+        box, circle, clean, run, and walk all achieving near-perfect recognition. The only notable confusion occurs for
+        fall, which is occasionally misclassified as clean. Compared to UT-HAR, the activities in NTU-Fi appear more
+        distinct and easier to separate based on their CSI signatures, which results in exceptionally strong performance
+        and minimal overlap between classes.
+        <br><br>
+
+        <div style="text-align: center;">
+          <img style="height: 397px;" alt="" src="Fig_14_Human-ID_Confusion_Matrix.png">
+          <div>
+            Figure 14. NTU-Fi Human-ID confusion matrix.
+          </div>
+        </div>
+        <br>
+        The results for NTU-Fi Human-ID show nearly perfect identification across all 14 subjects with most individuals
+        classified with 100% accuracy. Only a small amount of confusion occurs for Subject 10 and Subject 12, with a few
+        misclassifications between them, but the overall magnitude of these errors is minimal. This indicates that the
+        model can extract highly discriminative gait-based features from CSI data, enabling accurate subject-level
+        recognition despite natural variation in walking patterns. Overall, the qualitative results demonstrate strong
+        identity-specific separability and suggest that CSI carries stable biometric signatures that can be exploited
+        for reliable gait identification.
+        <br><br>
+
+        <!-- Conclusion -->
+        <h3>Conclusion</h3>
+        This project investigated Wi-Fi Channel State Information (CSI) as a passive sensing modality for human motion
+        analysis, evaluating both activity recognition and gait-based identity classification using a unified deep
+        learning architecture. We reproduced the CNN+GRU model proposed by Wakili et al. and demonstrated comparable
+        performance on two established benchmarks, UT-HAR and NTU-Fi HAR. Beyond replication, we extended the model to
+        the NTU-Fi Human-ID dataset and showed that the same architecture can effectively classify individuals based
+        solely on their gait patterns, achieving nearly perfect recognition accuracy. These results demonstrate that CSI
+        data encodes both behavioral information, capturing what a person is doing, and biometric data, capturing who is
+        doing it. This enables a wide range of applications without requiring wearable sensors or cameras.
+        <br><br>
+        Overall, our findings highlight the potential of lightweight temporal neural networks for CSI-based sensing,
+        showing strong generalization across datasets, environments, and tasks. The ability to use a single architecture
+        without task-specific modifications underscores the expressive capacity of CSI signals and suggests that passive
+        RF sensing can serve as a foundation for robust, privacy-preserving inference systems in smart homes,
+        healthcare, and security contexts.
+        <br><br>
+        Future research can further extend this work in several promising directions. First, an end-to-end CSI
+        acquisition pipeline would allow direct control over data collection, preprocessing, and synchronization,
+        enabling evaluation in real-world deployments. Also, exploring alternative architectures like Transformers or
+        Conv-SNNs may yield further gains in efficiency and interpretability. Finally, adversarial robustness should be
+        addressed for security-sensitive applications where spoofing, mimicry, or signal interference are legitimate
+        concerns.
+        <br><br>
+
+        <!-- References -->
+        <h3>References</h3>
+        [1] A. A. Wakili, B. J. Asaju, and W. Jung, "Evaluating BiLSTM and CNN+GRU Approaches for Human Activity
+        Recognition Using WiFi CSI Data," in Proc. 23rd IEEE/ACIS Int. Conf. Softw. Eng., Manage. Appl. (SERA), 2025,
+        arXiv:2506.11165.
+        <br><br>
+        [2] Yang, Jianfei; Chen, Xinyan; Zou, Han; Lu, Chris Xiaoxuan; Wang, Dazhuo; Sun, Sumei; Xie, Lihua. SenseFi: A
+        Library and Benchmark on Deep-Learning-Empowered WiFi Human Sensing. Patterns, vol. 4, no. 3, 2023, article
+        100703. DOI: 10.1016/j.patter.2023.100703.
+        <br><br>
+        [3] Yu, Min, Züttel, Christian, Hanin, Boris. “Dynamical Isometry and a Mean Field Theory of LSTMs and GRUs.”
+        arXiv preprint arXiv:1901.08987 (2019).
+        <br><br>
+
+        <hr>
+        <footer>
+          <p>© Mack Werner, Ryan Frost, and Jacqueline Newland</p>
+        </footer>
+      </div>
+    </div>
+
+    <br><br>
+  </body>
+</html>
